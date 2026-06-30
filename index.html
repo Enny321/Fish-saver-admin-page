@@ -203,6 +203,12 @@
     </div>
 
     <div>
+      <div class="field-label">Reference Code <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — improves ad attribution)</span></div>
+      <input type="text" id="refCodeInput" placeholder="e.g. R-7F3K9" autocomplete="off" style="text-transform:uppercase">
+      <div class="field-hint">If the customer quoted a reference code (shown to them on the landing page) when they messaged you, enter it here. This links the sale back to the exact ad that brought them in.</div>
+    </div>
+
+    <div>
       <div class="field-label">Amount Paid</div>
       <div class="amount-row">
         <input type="number" id="amountInput" value="5400" min="1">
@@ -293,6 +299,8 @@
     btn.disabled    = true;
     btn.textContent = 'Sending to Meta…';
 
+    var refCode = document.getElementById('refCodeInput').value.trim().toUpperCase();
+
     var payload = {
       secret:   ADMIN_SECRET,
       phone:    phone,
@@ -300,7 +308,8 @@
       value:    amount,
       currency: 'NGN',
     };
-    if (email) payload.email = email;
+    if (email)   payload.email = email;
+    if (refCode) payload.ref_code = refCode;
     if (TEST_MODE && TEST_EVENT_CODE) payload.test_event_code = TEST_EVENT_CODE;
 
     var success = false;
@@ -331,10 +340,11 @@
       showToast('✓ Sent to Meta — ' + order);
       addLog(phone, email, order, amount, true);
       // Reset form for next entry
-      document.getElementById('phoneInput').value  = '';
-      document.getElementById('emailInput').value  = '';
-      document.getElementById('orderInput').value  = nextOrderId();
-      document.getElementById('amountInput').value = '5400';
+      document.getElementById('phoneInput').value   = '';
+      document.getElementById('emailInput').value   = '';
+      document.getElementById('refCodeInput').value = '';
+      document.getElementById('orderInput').value   = nextOrderId();
+      document.getElementById('amountInput').value  = '5400';
       document.getElementById('phoneInput').focus();
     } else {
       showToast('Error: ' + errMsg, true);
