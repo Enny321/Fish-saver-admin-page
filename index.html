@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sabii Farms — Payment Admin</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a1a14;
+    --bg2:      #0f2419;
+    --gold:     #f0b429;
+    --green:    #25d366;
+    --green-dk: #128c4a;
+    --white:    #f5f5f5;
+    --muted:    #8fada0;
+    --red:      #e63946;
+    --border:   rgba(240,180,41,0.18);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 16px 48px;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .logo { text-align: center; margin-bottom: 28px; }
+  .logo-badge {
+    display: inline-block;
+    background: rgba(240,180,41,0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 3px; margin-bottom: 10px;
+  }
+  .logo h1 { font-size: 20px; font-weight: 700; color: var(--white); line-height: 1.2; }
+  .logo p  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── PIN SCREEN ── */
+  #pinScreen { display: flex; flex-direction: column; gap: 16px; }
+
+  .field-label {
+    font-size: 12px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 6px;
+  }
+  .field-hint {
+    font-size: 11px; color: var(--muted);
+    margin-top: 5px; line-height: 1.4;
+  }
+
+  input[type="password"],
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="number"] {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    color: var(--white);
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  input:focus    { border-color: var(--gold); }
+  input::placeholder { color: var(--muted); }
+
+  .btn {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    font-size: 15px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 14px; border: none; border-radius: 6px;
+    cursor: pointer; transition: background 0.15s, opacity 0.15s;
+  }
+  .btn:hover   { background: var(--green-dk); }
+  .btn:active  { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px; padding: 10px; margin-top: 4px;
+  }
+  .btn-secondary:hover { border-color: var(--muted); background: transparent; }
+
+  /* ── FORM SCREEN ── */
+  #formScreen { display: none; flex-direction: column; gap: 18px; }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .amount-row { display: flex; align-items: center; gap: 10px; }
+  .amount-row input { flex: 1; }
+  .currency-badge {
+    background: rgba(240,180,41,0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 13px; font-weight: 700;
+    padding: 12px 10px; border-radius: 6px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ── LOG CARD ── */
+  #logSection { display: none; width: 100%; max-width: 420px; }
+  .log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .log-title {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  }
+  .log-revenue {
+    font-size: 13px; font-weight: 700; color: var(--gold);
+  }
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 6px; padding: 10px 14px;
+    font-size: 12.5px; line-height: 1.5;
+  }
+  .log-phone { color: var(--white); font-weight: 600; }
+  .log-meta  { color: var(--muted); }
+  .log-ok    { color: var(--green); font-weight: 600; }
+  .log-err   { color: var(--red);   font-weight: 600; }
+  .log-empty { font-size: 12px; color: var(--muted); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a3325; border: 1px solid var(--green);
+    color: var(--white); font-size: 13px; font-weight: 500;
+    padding: 12px 20px; border-radius: 8px;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none; white-space: nowrap; z-index: 999;
+    max-width: 90vw; text-align: center;
+  }
+  #toast.error { background: #2a1015; border-color: var(--red); }
+  #toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-badge">Sabii Farms</div>
+    <h1>Payment Admin</h1>
+    <p>Mark Fish Saver System purchases as paid</p>
+  </div>
+
+  <!-- PIN SCREEN -->
+  <div id="pinScreen">
+    <div>
+      <div class="field-label">Admin PIN</div>
+      <input type="password" id="pinInput" placeholder="Enter your admin PIN" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="unlock()">Unlock →</button>
+  </div>
+
+  <!-- FORM SCREEN -->
+  <div id="formScreen">
+
+    <div>
+      <div class="field-label">Customer WhatsApp Number</div>
+      <input type="tel" id="phoneInput" placeholder="e.g. 08012345678 or +2348012345678" autocomplete="off">
+    </div>
+
+    <div>
+      <div class="field-label">Customer Email <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — improves Meta matching)</span></div>
+      <input type="email" id="emailInput" placeholder="e.g. customer@gmail.com" autocomplete="off">
+      <div class="field-hint">Only fill this if the customer gave you their email on WhatsApp. Leave blank if not.</div>
+    </div>
+
+    <div>
+      <div class="field-label">Order ID</div>
+      <input type="text" id="orderInput" placeholder="e.g. FSS-001" autocomplete="off">
+    </div>
+
+    <div>
+      <div class="field-label">Amount Paid</div>
+      <div class="amount-row">
+        <input type="number" id="amountInput" value="5400" min="1">
+        <div class="currency-badge">NGN</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn" id="markPaidBtn" onclick="markPaid()">✓ Mark as Paid — Send to Meta</button>
+    <button class="btn btn-secondary" onclick="lock()">Lock / Sign out</button>
+
+  </div>
+</div>
+
+<!-- SESSION LOG -->
+<div id="logSection">
+  <div class="log-header">
+    <div class="log-title">This Session</div>
+    <div class="log-revenue" id="logRevenue"></div>
+  </div>
+  <div class="log-list" id="logList">
+    <div class="log-empty">No payments marked yet.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════════════════════
+  //  CONFIG — fill in all four values before deploying
+  // ══════════════════════════════════════════════════════════
+  var WORKER_URL   = 'https://fish-saver-worker.emmanuelinioluwa2000.workers.dev/';  // ← your Cloudflare Worker URL
+  var ADMIN_PIN    = '2468097531';                  // ← PIN you type to unlock this page
+  var ADMIN_SECRET = 'FSS_7vK4!!rrwjP#Lx4Qz8@Nw61Rc';             // ← must match Worker's ADMIN_SECRET exactly
+  // ══════════════════════════════════════════════════════════
+
+  var sessionLog     = [];
+  var sessionRevenue = 0;
+  var orderCounter   = 1;
+
+  function nextOrderId() {
+    var d   = new Date();
+    var ymd = d.getFullYear().toString().slice(-2)
+      + String(d.getMonth()+1).padStart(2,'0')
+      + String(d.getDate()).padStart(2,'0');
+    return 'FSS-' + ymd + '-' + String(orderCounter++).padStart(3,'0');
+  }
+
+  document.getElementById('pinInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') unlock();
+  });
+
+  function unlock() {
+    if (document.getElementById('pinInput').value.trim() !== ADMIN_PIN) {
+      showToast('Wrong PIN. Try again.', true);
+      document.getElementById('pinInput').value = '';
+      return;
+    }
+    document.getElementById('pinScreen').style.display  = 'none';
+    document.getElementById('formScreen').style.display = 'flex';
+    document.getElementById('logSection').style.display = 'block';
+    document.getElementById('orderInput').value = nextOrderId();
+    document.getElementById('phoneInput').focus();
+  }
+
+  function lock() {
+    document.getElementById('pinScreen').style.display  = 'flex';
+    document.getElementById('formScreen').style.display = 'none';
+    document.getElementById('logSection').style.display = 'none';
+    document.getElementById('pinInput').value = '';
+  }
+
+  async function markPaid() {
+    var phone  = document.getElementById('phoneInput').value.trim();
+    var email  = document.getElementById('emailInput').value.trim();
+    var order  = document.getElementById('orderInput').value.trim();
+    var amount = parseFloat(document.getElementById('amountInput').value) || 5400;
+
+    if (!phone) { showToast('Enter the customer WhatsApp number.', true); return; }
+    if (!order) { showToast('Enter an order ID.', true); return; }
+
+    var btn = document.getElementById('markPaidBtn');
+    btn.disabled    = true;
+    btn.textContent = 'Sending to Meta…';
+
+    var payload = {
+      secret:   ADMIN_SECRET,
+      phone:    phone,
+      order_id: order,
+      value:    amount,
+      currency: 'NGN',
+    };
+    if (email) payload.email = email;
+
+    var success = false;
+    var errMsg  = '';
+
+    try {
+      var res  = await fetch(WORKER_URL + '/purchase', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      var data = await res.json();
+
+      if (res.ok && data.events_received > 0) {
+        success = true;
+      } else {
+        errMsg = (data.error && data.error.message) || JSON.stringify(data);
+      }
+    } catch (e) {
+      errMsg = 'Network error: ' + e.message;
+    }
+
+    btn.disabled    = false;
+    btn.textContent = '✓ Mark as Paid — Send to Meta';
+
+    if (success) {
+      sessionRevenue += amount;
+      showToast('✓ Sent to Meta — ' + order);
+      addLog(phone, email, order, amount, true);
+      // Reset form for next entry
+      document.getElementById('phoneInput').value  = '';
+      document.getElementById('emailInput').value  = '';
+      document.getElementById('orderInput').value  = nextOrderId();
+      document.getElementById('amountInput').value = '5400';
+      document.getElementById('phoneInput').focus();
+    } else {
+      showToast('Error: ' + errMsg, true);
+      addLog(phone, email, order, amount, false, errMsg);
+    }
+  }
+
+  function addLog(phone, email, order, amount, ok, err) {
+    var time = new Date().toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit' });
+    sessionLog.unshift({ phone, email, order, amount, ok, err, time });
+
+    // Update revenue counter (only successful)
+    document.getElementById('logRevenue').textContent =
+      sessionRevenue > 0 ? '₦' + sessionRevenue.toLocaleString() + ' today' : '';
+
+    var list = document.getElementById('logList');
+    list.innerHTML = sessionLog.map(function(e) {
+      var emailLine = e.email ? ' &nbsp;·&nbsp; ' + e.email : '';
+      return '<div class="log-item">'
+        + '<span class="log-phone">' + e.phone + '</span>'
+        + emailLine
+        + '<br>'
+        + '<span class="log-meta">' + e.order + ' &nbsp;·&nbsp; ₦' + e.amount.toLocaleString() + ' &nbsp;·&nbsp; ' + e.time + '</span><br>'
+        + (e.ok
+            ? '<span class="log-ok">✓ Sent to Meta</span>'
+            : '<span class="log-err">✗ Failed — ' + (e.err || 'unknown error') + '</span>')
+        + '</div>';
+    }).join('');
+  }
+
+  function showToast(msg, isError) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'show' + (isError ? ' error' : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() { t.className = isError ? 'error' : ''; }, 3500);
+  }
+</script>
+
+</body>
+</html>
