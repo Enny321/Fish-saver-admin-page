@@ -232,12 +232,16 @@
 <div id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════════════════
+  //  CONFIG
   // ══════════════════════════════════════════════════════════
-  //  CONFIG — fill in all four values before deploying
-  // ══════════════════════════════════════════════════════════
-  var WORKER_URL   = 'https://fish-saver-worker.emmanuelinioluwa2000.workers.dev/';  // ← your Cloudflare Worker URL
-  var ADMIN_PIN    = '2468097531';                  // ← PIN you type to unlock this page
-  var ADMIN_SECRET = 'FSS_7vK4!!rrwjP#Lx4Qz8@Nw61Rc';             // ← must match Worker's ADMIN_SECRET exactly
+  var WORKER_URL   = 'https://fish-saver-worker.emmanuelinioluwa2000.workers.dev';  // ← no trailing slash
+  var ADMIN_PIN    = '2468097531';
+  var ADMIN_SECRET = 'FSS_7vK4!!rrwjP#Lx4Qz8@Nw61Rc';
+
+  // ── TEST MODE — flip these two lines to test, then flip both back for production ──
+  var TEST_MODE       = false;   // ← set to true while testing, false for real sales
+  var TEST_EVENT_CODE = '';      // ← paste test code here ONLY while TEST_MODE is true; leave empty otherwise
   // ══════════════════════════════════════════════════════════
 
   var sessionLog     = [];
@@ -297,6 +301,7 @@
       currency: 'NGN',
     };
     if (email) payload.email = email;
+    if (TEST_MODE && TEST_EVENT_CODE) payload.test_event_code = TEST_EVENT_CODE;
 
     var success = false;
     var errMsg  = '';
